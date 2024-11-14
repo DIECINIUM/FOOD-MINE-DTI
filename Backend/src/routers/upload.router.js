@@ -14,25 +14,34 @@ router.post(
   upload.single('image'),
   handler(async (req, res) => {
     const file = req.file;
+
     if (!file) {
-      res.status(BAD_REQUEST).send();
-      return;
+      return res.status(BAD_REQUEST).send({ message: 'Image file is required' });
     }
 
-    const imageUrl = await uploadImageToCloudinary(req.file?.buffer);
-    res.send({ imageUrl });
+    try {
+      // Upload image to Cloudinary
+      const imageUrl = await uploadImageToCloudinary(req.file?.buffer);
+      
+      // Respond with image URL
+      res.status(200).send({ imageUrl });
+    } catch (error) {
+      // Handle Cloudinary upload error
+      res.status(500).send({ message: 'Error uploading image to Cloudinary', error: error.message });
+    }
   })
 );
 
+// Cloudinary upload function
 const uploadImageToCloudinary = imageBuffer => {
   const cloudinary = configCloudinary();
 
   return new Promise((resolve, reject) => {
-    if (!imageBuffer) reject(null);
+    if (!imageBuffer) reject('No image buffer provided');
 
     cloudinary.uploader
       .upload_stream((error, result) => {
-        if (error || !result) reject(error);
+        if (error || !result) reject(error ? error : 'Cloudinary upload failed');
         else resolve(result.url);
       })
       .end(imageBuffer);

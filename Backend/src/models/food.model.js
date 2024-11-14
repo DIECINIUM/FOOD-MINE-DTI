@@ -2,7 +2,7 @@ import { model, Schema } from 'mongoose';
 
 export const FoodSchema = new Schema(
   {
-    _id: { type: String, required: true }, // Allow custom string as _id
+    _id: { type: Schema.Types.ObjectId, auto: true },
     name: { type: String, required: true },
     price: { type: Number, required: true },
     tags: { type: [String] },
