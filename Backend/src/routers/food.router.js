@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { FoodModel } from '../models/food.model.js';
 import handler from 'express-async-handler';
 import admin from '../middleware/admin.mid.js';
-import { ObjectId } from 'mongoose';
+import uploadImageToCloudinary from './upload.router.js';
+import { BAD_REQUEST } from '../constants/httpStatus.js';
 
 const router = Router();
 
@@ -14,29 +15,42 @@ router.get('/', handler(async (req, res) => {
 
 // Create a new food item
 router.post('/', admin, handler(async (req, res) => {
-  const { name, price, tags, favorite, imageUrl, origins, cookTime } = req.body;
+  const { name, price, tags, origins, cookTime } = req.body;
 
-  // Validate required fields
-  if (!name || !price || !imageUrl || !origins || !cookTime) {
-    return res.status(400).send({ message: 'Missing required fields: name, price, imageUrl, origins, and cookTime are required' });
+  if (!name || !price || !origins || !cookTime) {
+    return res.status(400).send({ message: 'Missing required fields: name, price, origins, and cookTime are required' });
   }
 
-  // Ensure tags and origins are arrays
-  const processedTags = Array.isArray(tags) ? tags : tags ? tags.split(',') : [];
-  const processedOrigins = Array.isArray(origins) ? origins : origins ? origins.split(',') : [];
+  const img = req.file?.buffer;  // Ensure you're passing the buffer here
+  if (!img) {
+    return res.status(BAD_REQUEST).send({ message: 'Image file is required' });
+  }
 
-  const food = new FoodModel({
-    name,
-    price,
-    tags: processedTags,
-    favorite: favorite || false,  // default to false if not provided
-    imageUrl,
-    origins: processedOrigins,
-    cookTime,
-  });
+  try {
+    const imageUrl = await uploadImageToCloudinary(img);  // Upload the image
 
-  await food.save();
-  res.status(201).send(food);  // Created status
+    if (!imageUrl) {
+      return res.status(BAD_REQUEST).send({ message: 'Error in uploading image on cloudinary' });
+    }
+
+    const processedTags = Array.isArray(tags) ? tags : tags ? tags.split(',') : [];
+    const processedOrigins = Array.isArray(origins) ? origins : origins ? origins.split(',') : [];
+
+    const food = new FoodModel({
+      name,
+      price,
+      tags: processedTags,
+      imgUrl: imageUrl,
+      origins: processedOrigins,
+      cookTime,
+    });
+
+    await food.save();
+    res.status(201).send(food);
+
+  } catch (error) {
+    return res.status(BAD_REQUEST).send({ message: error.message || 'Unknown error during upload' });
+  }
 }));
 
 // Update an existing food item

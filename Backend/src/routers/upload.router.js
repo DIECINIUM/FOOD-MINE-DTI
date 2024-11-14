@@ -1,51 +1,36 @@
-import { Router } from 'express';
-import admin from '../middleware/admin.mid.js';
-import multer from 'multer';
-import handler from 'express-async-handler';
-import { BAD_REQUEST } from '../constants/httpStatus.js';
-import { configCloudinary } from '../config/cloudinary.config.js';
+import { configCloudinary } from "../config/cloudinary.config.js";
 
-const router = Router();
-const upload = multer();
+const uploadImageToCloudinary = async (fileBuffer) => {
+  try {
+    console.log("Uploading to Cloudinary...");
 
-router.post(
-  '/',
-  admin,
-  upload.single('image'),
-  handler(async (req, res) => {
-    const file = req.file;
-
-    if (!file) {
-      return res.status(BAD_REQUEST).send({ message: 'Image file is required' });
+    const cloudinary = configCloudinary();
+    if (!fileBuffer) {
+      throw new Error("No file buffer provided");
     }
 
-    try {
-      // Upload image to Cloudinary
-      const imageUrl = await uploadImageToCloudinary(req.file?.buffer);
-      
-      // Respond with image URL
-      res.status(200).send({ imageUrl });
-    } catch (error) {
-      // Handle Cloudinary upload error
-      res.status(500).send({ message: 'Error uploading image to Cloudinary', error: error.message });
-    }
-  })
-);
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { resource_type: "auto", timeout: 60000 },
+        (error, result) => {
+          if (error || !result) {
+            console.error("Upload error:", error); // Log error details
+            reject(new Error(error.message || "Error uploading to Cloudinary"));
+          } else {
+            resolve(result);
+          }
+        }
+      );
 
-// Cloudinary upload function
-const uploadImageToCloudinary = imageBuffer => {
-  const cloudinary = configCloudinary();
+      fileBuffer.pipe(uploadStream);
+    });
 
-  return new Promise((resolve, reject) => {
-    if (!imageBuffer) reject('No image buffer provided');
-
-    cloudinary.uploader
-      .upload_stream((error, result) => {
-        if (error || !result) reject(error ? error : 'Cloudinary upload failed');
-        else resolve(result.url);
-      })
-      .end(imageBuffer);
-  });
+    console.log("Upload successful:", result); // Log successful result
+    return result.url;
+  } catch (error) {
+    console.error("Error during upload:", error);
+    throw new Error(error.message || "Unknown error during upload");
+  }
 };
 
-export default router;
+export default uploadImageToCloudinary;

@@ -1,3 +1,4 @@
+// src/config/cloudinary.config.js
 import { v2 as cloudinary } from 'cloudinary';
 
 export const configCloudinary = () => {
