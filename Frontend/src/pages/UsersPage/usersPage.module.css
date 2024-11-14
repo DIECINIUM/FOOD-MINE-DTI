@@ -6,14 +6,14 @@
   font-size: 1.1rem;
 }
 
-/* List styling with shadow and max-width */
+/* List styling with shadow and increased width */
 .list {
   width: 100%;
-  max-width: 50rem;
+  max-width: 70rem; /* Increased max-width */
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 1rem;
+  padding: 1.5rem;
   transition: all 0.3s ease;
 }
 
@@ -21,7 +21,7 @@
   box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Header styling with better padding and color */
+/* Header styling with padding and color */
 .list_item h3 {
   font-size: 1rem;
   color: #333;
@@ -34,12 +34,12 @@
 /* Item styling */
 .list_item {
   display: grid;
-  grid-template-columns: 20% 35% 20% 10% 15%;
+  grid-template-columns: 20% 25% 25% 10% 20%; /* Adjusted column sizes */
   gap: 1%;
   align-items: center;
   border-bottom: 1px solid #eee;
   min-height: 3.5rem;
-  padding: 0.5rem 0;
+  padding: 0.8rem 0; /* Increased padding */
 }
 
 .list_item:nth-child(even) {
@@ -54,24 +54,29 @@
 /* Action button styling */
 .actions {
   display: flex;
-  gap: 0.7rem;
+  justify-content: space-between;
+  gap: 0.5 rem;
 }
 
 .actions a {
   text-decoration: none;
   color: #0066cc;
-  padding: 0.3rem 0.5rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 4px;
-  transition: background-color 0.3s ease;
+  background-color: #f1f1f1; /* Button background */
+  transition: all 0.3s ease;
 }
 
 .actions a:hover {
-  background-color: #f0f4f8;
+  background-color: #e0e0e0;
+  color: #004080;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Status icons */
 .isAdminIcon {
   font-size: 1.2rem;
+  color: #0066cc;
 }
 
 h3 {
